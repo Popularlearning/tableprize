@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>「衆」智成城，共創高峰 - 大衆文教集團</title>
+    <!-- 引入 Confetti 特效庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-red: #8B0000;
+            --gold: #FFD700;
+            --dark-gold: #B8860B;
+            --bg-color: #1a0000;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background: linear-gradient(135deg, var(--bg-color) 0%, var(--primary-red) 100%);
+            color: var(--gold);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+        .title {
+            font-size: 4vw;
+            font-weight: bold;
+            margin: 0;
+            letter-spacing: 5px;
+        }
+        .subtitle {
+            font-size: 2vw;
+            margin-top: 10px;
+            color: #FFF8DC;
+        }
+        .draw-container {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+        .zodiac-box {
+            width: 250px;
+            height: 300px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 4px solid var(--gold);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        .zodiac-box.active {
+            background: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 40px var(--gold), inset 0 0 30px var(--gold);
+            transform: scale(1.05);
+        }
+        .zodiac-name {
+            font-size: 40px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .btn-group {
+            display: flex;
+            gap: 20px;
+        }
+        button {
+            padding: 15px 50px;
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-red);
+            background: linear-gradient(to bottom, var(--gold), var(--dark-gold));
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+        }
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        button:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 class="subtitle">大衆文教集團 年度聚餐</h2>
+        <h1 class="title">「衆」智成城，共創高峰</h1>
+    </div>
+
+    <div class="draw-container">
+        <div class="zodiac-box" id="box1">
+            <div class="zodiac-icon" id="icon1">❓</div>
+            <div class="zodiac-name" id="name1">準備</div>
+        </div>
+        <div class="zodiac-box" id="box2">
+            <div class="zodiac-icon" id="icon2">❓</div>
+            <div class="zodiac-name" id="name2">準備</div>
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button id="drawBtn" onclick="startDraw()">開始抽獎</button>
+        <button id="resetBtn" onclick="resetDraw()" style="display: none; background: #ddd; color: #333;">重新開始</button>
+    </div>
+
+    <script>
+        const zodiacs = [
+            { name: '鼠', icon: '🐭' }, { name: '牛', icon: '🐮' },
+            { name: '虎', icon: '🐯' }, { name: '兔', icon: '🐰' },
+            { name: '龍', icon: '🐲' }, { name: '蛇', icon: '🐍' },
+            { name: '馬', icon: '🐴' }, { name: '羊', icon: '🐏' },
+            { name: '猴', icon: '🐵' }, { name: '雞', icon: '🐔' },
+            { name: '狗', icon: '🐶' }, { name: '豬', icon: '🐷' }
+        ];
+
+        let drawInterval;
+        let isDrawing = false;
+
+        function getRandomZodiacs() {
+            let shuffled = [...zodiacs].sort(() => 0.5 - Math.random());
+            return [shuffled[0], shuffled[1]];
+        }
+
+        function updateDisplay(z1, z2) {
+            document.getElementById('icon1').innerText = z1.icon;
+            document.getElementById('name1').innerText = z1.name;
+            document.getElementById('icon2').innerText = z2.icon;
+            document.getElementById('name2').innerText = z2.name;
+        }
+
+        function startDraw() {
+            if (isDrawing) return;
+            isDrawing = true;
+            
+            const drawBtn = document.getElementById('drawBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const boxes = document.querySelectorAll('.zodiac-box');
+            
+            drawBtn.disabled = true;
+            resetBtn.style.display = 'none';
+            boxes.forEach(box => box.classList.remove('active'));
+
+            // 模擬快速跳動效果
+            let counter = 0;
+            drawInterval = setInterval(() => {
+                const randomZ = getRandomZodiacs();
+                updateDisplay(randomZ[0], randomZ[1]);
+                counter++;
+                
+                // 停止跳動，顯示最終結果
+                if (counter > 30) {
+                    clearInterval(drawInterval);
+                    finalizeDraw();
+                }
+            }, 80);
+        }
+
+        function finalizeDraw() {
+            const finalResults = getRandomZodiacs();
+            updateDisplay(finalResults[0], finalResults[1]);
+            
+            const boxes = document.querySelectorAll('.zodiac-box');
+            boxes.forEach(box => box.classList.add('active'));
+
+            // 觸發紙屑特效
+            triggerConfetti();
+
+            document.getElementById('drawBtn').style.display = 'none';
+            document.getElementById('resetBtn').style.display = 'block';
+            document.getElementById('resetBtn').disabled = false;
+            isDrawing = false;
+        }
+
+        function resetDraw() {
+            document.getElementById('icon1').innerText = '❓';
+            document.getElementById('name1').innerText = '準備';
+            document.getElementById('icon2').innerText = '❓';
+            document.getElementById('name2').innerText = '準備';
+            
+            const boxes = document.querySelectorAll('.zodiac-box');
+            boxes.forEach(box => box.classList.remove('active'));
+
+            document.getElementById('drawBtn').style.display = 'block';
+            document.getElementById('drawBtn').disabled = false;
+            document.getElementById('resetBtn').style.display = 'none';
+        }
+
+        function triggerConfetti() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+    </script>
+</body>
+</html>
